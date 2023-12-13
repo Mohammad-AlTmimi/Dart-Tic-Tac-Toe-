@@ -1,6 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
-
+String Player1 = "", Player2 = "";
 List<String> Quiz = List.filled(9, "");
 bool isSame(int a, int b, int c) {
   if (Quiz[a] == Quiz[b] && Quiz[b] == Quiz[c]
@@ -24,6 +24,21 @@ int aiMove(){
   // will never get here
   return -1;
 }
+void chooseChar(){
+  print("Do you want to Play in X or in O");
+  String input = stdin.readLineSync() ?? '';
+  if(input == 'X'){
+    Player1 = 'X';
+    Player2 = 'O';
+    return ;
+  }
+  else if(input == 'O'){
+    Player1 = 'O';
+    Player2 = 'X';
+    return ;
+  }
+  chooseChar();
+}
 int ReadValue(){
   String input = stdin.readLineSync() ?? '';
   try {
@@ -37,17 +52,18 @@ int ReadValue(){
   }
 }
 void main(){
+  chooseChar();
   int cnt = 9;
   while(cnt != 0){
     print(printTable());
     cnt--;
     print('Player ${cnt % 2 == 0 ? 1 : 2}, Plese enter the number of the square '
-          'Where you want to Place your ${cnt % 2 == 0 ? 'X' : 'O'}\n');
+          'Where you want to Place your ${cnt % 2 == 0 ? Player1 : Player2}\n');
     int ans = cnt % 2 == 0 ? ReadValue() : aiMove();
     if(cnt % 2 == 1){
       print(ans + 1);
     }
-    Quiz[ans] = cnt % 2 == 0 ? 'X' : 'O';
+    Quiz[ans] = cnt % 2 == 0 ? Player1 : Player2;
 
     if(isSame(0, 1, 2) || isSame(3, 4, 5) || isSame(6, 7, 8)
     || isSame(0, 4, 8) || isSame(2, 4, 6)

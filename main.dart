@@ -16,7 +16,14 @@ String printTable() {
          '---+---+---\n'
          ' ${Quiz[6] == "" ? 7 : Quiz[6]} | ${Quiz[7] == "" ? 8 : Quiz[7]} | ${Quiz[8] == "" ? 9 : Quiz[8]} \n';
 }
-
+int aiMove(){
+  for(int i = 0; i < 9; i++){
+    if(Quiz[i] == "")
+        return i;
+  }
+  // will never get here
+  return -1;
+}
 int ReadValue(){
   String input = stdin.readLineSync() ?? '';
   try {
@@ -36,7 +43,10 @@ void main(){
     cnt--;
     print('Player ${cnt % 2 == 0 ? 1 : 2}, Plese enter the number of the square '
           'Where you want to Place your ${cnt % 2 == 0 ? 'X' : 'O'}\n');
-    int ans = ReadValue();
+    int ans = cnt % 2 == 0 ? ReadValue() : aiMove();
+    if(cnt % 2 == 1){
+      print(ans + 1);
+    }
     Quiz[ans] = cnt % 2 == 0 ? 'X' : 'O';
 
     if(isSame(0, 1, 2) || isSame(3, 4, 5) || isSame(6, 7, 8)

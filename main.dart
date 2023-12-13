@@ -43,9 +43,11 @@ void main(){
     || isSame(0, 4, 8) || isSame(2, 4, 6)
     || isSame(6, 3, 0) || isSame(7, 4, 1) || isSame(8, 5, 2)){
       print('Player ${cnt % 2 == 0 ? 1 : 2} is Winer ');
+      printTable();
       return ;
     }
     
   }
+  print("Its a Draw");
   //List<String> fruits = new List<String>();
 }

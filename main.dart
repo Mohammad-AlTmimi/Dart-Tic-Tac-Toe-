@@ -1,79 +1,121 @@
-import 'dart:ffi';
 import 'dart:io';
-String Player1 = "", Player2 = "";
-List<String> Quiz = List.filled(9, "");
-bool isSame(int a, int b, int c) {
-  if (Quiz[a] == Quiz[b] && Quiz[b] == Quiz[c]
-  &&  Quiz[a] != "") {
-    return true;
+
+String player1 = "", player2 = "";
+List<String> board = List.filled(9, "");
+bool is1v1 = false; // Flag to determine game mode
+
+// Check if three positions are the same (win condition)
+bool isWinningMove(int a, int b, int c) {
+  return board[a] == board[b] &&
+         board[b] == board[c] &&
+         board[a] != "";
+}
+
+// Print the current board state
+String displayBoard() {
+  return '''
+   ${board[0].isEmpty ? '1' : board[0]} | ${board[1].isEmpty ? '2' : board[1]} | ${board[2].isEmpty ? '3' : board[2]}
+  ---+---+---
+   ${board[3].isEmpty ? '4' : board[3]} | ${board[4].isEmpty ? '5' : board[4]} | ${board[5].isEmpty ? '6' : board[5]}
+  ---+---+---
+   ${board[6].isEmpty ? '7' : board[6]} | ${board[7].isEmpty ? '8' : board[7]} | ${board[8].isEmpty ? '9' : board[8]}
+  ''';
+}
+
+// AI selects the first available empty square
+int getAiMove() {
+  for (int i = 0; i < 9; i++) {
+    if (board[i].isEmpty) {
+      return i;
+    }
   }
-  return false;
+  return -1; // This shouldn't be reached
 }
-String printTable() {
-  return ' ${Quiz[0] == "" ? 1 : Quiz[0]} | ${Quiz[1] == "" ? 2 : Quiz[1]} | ${Quiz[2] == "" ? 3 : Quiz[2]} \n'
-         '---+---+---\n'
-         ' ${Quiz[3] == "" ? 4 : Quiz[3]} | ${Quiz[4] == "" ? 5 : Quiz[4]} | ${Quiz[5] == "" ? 6 : Quiz[5]} \n'
-         '---+---+---\n'
-         ' ${Quiz[6] == "" ? 7 : Quiz[6]} | ${Quiz[7] == "" ? 8 : Quiz[7]} | ${Quiz[8] == "" ? 9 : Quiz[8]} \n';
-}
-int aiMove(){
-  for(int i = 0; i < 9; i++){
-    if(Quiz[i] == "")
-        return i;
+
+// Prompt the user to choose X or O
+void choosePlayerChar() {
+  print("Do you want to play as X or O?");
+  String input = stdin.readLineSync()?.toUpperCase() ?? '';
+
+  if (input == 'X') {
+    player1 = 'X';
+    player2 = 'O';
+  } else if (input == 'O') {
+    player1 = 'O';
+    player2 = 'X';
+  } else {
+    print("Invalid choice. Please enter 'X' or 'O'.");
+    choosePlayerChar();
   }
-  // will never get here
-  return -1;
 }
-void chooseChar(){
-  print("Do you want to Play in X or in O");
+
+// Prompt the user to choose the game mode
+void chooseGameMode() {
+  print("Choose game mode:");
+  print("1. 1v1 (Player vs. Player)");
+  print("2. 1vAI (Player vs. AI)");
+
   String input = stdin.readLineSync() ?? '';
-  if(input == 'X'){
-    Player1 = 'X';
-    Player2 = 'O';
-    return ;
+  if (input == '1') {
+    is1v1 = true;
+  } else if (input == '2') {
+    is1v1 = false;
+  } else {
+    print("Invalid choice. Please enter '1' or '2'.");
+    chooseGameMode();
   }
-  else if(input == 'O'){
-    Player1 = 'O';
-    Player2 = 'X';
-    return ;
-  }
-  chooseChar();
 }
-int ReadValue(){
+
+// Read and validate user input for a move
+int getPlayerMove() {
+  print("Enter the number of the square where you want to place your marker:");
   String input = stdin.readLineSync() ?? '';
   try {
-    int number =  int.parse(input);
-    if(Quiz[number - 1] == "")
-      return number - 1;
-    throw(Error());
+    int position = int.parse(input) - 1;
+    if (position >= 0 && position < 9 && board[position].isEmpty) {
+      return position;
+    }
+    throw FormatException();
   } catch (e) {
-    print('Invalid input. Please enter a valid integer.');
-    return ReadValue();
+    print("Invalid input. Please enter a valid number (1-9) for an empty square.");
+    return getPlayerMove();
   }
 }
-void main(){
-  chooseChar();
-  int cnt = 9;
-  while(cnt != 0){
-    print(printTable());
-    cnt--;
-    print('Player ${cnt % 2 == 0 ? 1 : 2}, Plese enter the number of the square '
-          'Where you want to Place your ${cnt % 2 == 0 ? Player1 : Player2}\n');
-    int ans = cnt % 2 == 0 ? ReadValue() : aiMove();
-    if(cnt % 2 == 1){
-      print(ans + 1);
-    }
-    Quiz[ans] = cnt % 2 == 0 ? Player1 : Player2;
 
-    if(isSame(0, 1, 2) || isSame(3, 4, 5) || isSame(6, 7, 8)
-    || isSame(0, 4, 8) || isSame(2, 4, 6)
-    || isSame(6, 3, 0) || isSame(7, 4, 1) || isSame(8, 5, 2)){
-      print('Player ${cnt % 2 == 0 ? 1 : 2} is Winer ');
-      printTable();
-      return ;
+void main() {
+  chooseGameMode();
+  choosePlayerChar();
+
+  int remainingMoves = 9;
+
+  while (remainingMoves > 0) {
+    print(displayBoard());
+    remainingMoves--;
+
+    // Determine the current player and their move
+    bool isPlayer1Turn = remainingMoves % 2 == 0;
+    String currentPlayer = isPlayer1Turn ? player1 : player2;
+
+    int move;
+    if (isPlayer1Turn || is1v1) {
+      move = getPlayerMove();
+    } else {
+      move = getAiMove();
+      print("AI chose square ${move + 1}");
     }
-    
+
+    // Make the move and update the board
+    board[move] = currentPlayer;
+
+    // Check for a winner
+    if (isWinningMove(0, 1, 2) || isWinningMove(3, 4, 5) || isWinningMove(6, 7, 8) || // Rows
+        isWinningMove(0, 3, 6) || isWinningMove(1, 4, 7) || isWinningMove(2, 5, 8) || // Columns
+        isWinningMove(0, 4, 8) || isWinningMove(2, 4, 6)) {                           // Diagonals
+      print(displayBoard());
+      print("Player ${isPlayer1Turn ? 1 : (is1v1 ? 2 : 'AI')} wins!");
+      return;
+    }
   }
-  print("Its a Draw");
-  //List<String> fruits = new List<String>();
+
+  print("It's a draw!");
 }
